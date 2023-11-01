@@ -1,0 +1,41 @@
+version: '3'
+services:
+  prometheus:
+    container_name: 'prometheus'
+    image: prom/prometheus
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./conf/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml
+    networks:
+      - default
+
+  grafana:
+    image: grafana/grafana:latest
+    restart: always
+    depends_on:
+      - prometheus
+    ports:
+      - 3000:3000
+    user: $PUID
+    volumes:
+    - $DOCKERDIR/appdata/grafana:/var/lib/grafana
+    - ./conf/grafana/provisioning/:/etc/grafana/provisioning/
+    environment:
+      GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource,grafana-worldmap-panel,grafana-piechart-panel"
+    networks:
+      - default
+
+  home-monitor:
+    image: andreasohlen/home-monitor:latest
+    restart: always
+    ports: 
+      - 7001:7001
+    volumes:
+      - ../config.yaml:/root/config.yaml
+    networks:
+      - default
+
+networks:
+  default:
+    driver: bridge

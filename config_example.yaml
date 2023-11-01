@@ -1,0 +1,23 @@
+serviceName: home-monitor
+logLevel: DEBUG
+parallelism: 5
+metricsEnabled: true
+
+tibber:
+  url: https://api.tibber.com/v1-beta/gql
+  homeId: <home identifier - retrieve from https://developer.tibber.com>
+  apiToken: <API token - retrieve from https://developer.tibber.com>
+  measurements: 
+    - timestamp
+    - power
+    - averagePower
+    - accumulatedConsumption
+    - accumulatedCost
+    - currentL1
+    - currentL2
+    - currentL3
+    - voltagePhase1
+    - voltagePhase2
+    - voltagePhase3
+    - minPower
+    - maxPower
