@@ -21,12 +21,18 @@ type Config struct {
 }
 
 func LoadConfig(path string) *Config {
-	data, _ := os.ReadFile(path)
-	y := Config{}
-	err := yaml.Unmarshal([]byte(data), &y)
+	data, err := os.ReadFile(path)
 	if err != nil {
-		slog.Error("Error umarshalling config", "error", err)
+		slog.Error("Failed to read config", "path", path, "error", err)
+		os.Exit(1)
 	}
-	slog.Info("Config initialized", "config", y)
-	return &y
+
+	var cfg Config
+	if err := yaml.Unmarshal(data, &cfg); err != nil {
+		slog.Error("Failed to unmarshal config", "path", path, "error", err)
+		os.Exit(1)
+	}
+
+	slog.Info("Config initialized", "config", cfg)
+	return &cfg
 }

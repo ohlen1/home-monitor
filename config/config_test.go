@@ -6,24 +6,24 @@ import (
 	"testing"
 )
 
-var tibberMeasurements []string = []string{"timestamp", "power", "accumulatedConsumption", "accumulatedCost", "currency", "minPower", "averagePower", "maxPower"}
+var tibberMeasurements = []string{"timestamp", "power", "accumulatedConsumption", "accumulatedCost", "currency", "minPower", "averagePower", "maxPower"}
 
 func TestConfig(t *testing.T) {
-	cfg := LoadConfig("../test/config.yaml")
+	cfg := LoadConfig("../testdata/config-test.yaml")
 	if cfg.ServiceName != "home-monitor" {
-		t.Errorf("Failed ServiceName configuration, should be test but was: %s", cfg.ServiceName)
+		t.Fatalf("Failed ServiceName configuration, should be home-monitor but was: %s", cfg.ServiceName)
 	}
 	if cfg.Parallelism != 5 {
-		t.Errorf("Failed Parallelism configuration, should be 5 but was: %s", fmt.Sprint(cfg.Parallelism))
+		t.Fatalf("Failed Parallelism configuration, should be 5 but was: %d", cfg.Parallelism)
 	}
 
 	if !slices.Contains(cfg.Tibber.Measurements, "timestamp") {
-		t.Errorf("tibber.measurements does not contain timestamp")
+		t.Fatalf("tibber.measurements does not contain timestamp")
 	}
 
-	if !validTibberMeasurements(t, cfg.Tibber.Measurements) {
+	if !validTibberMeasurements(cfg.Tibber.Measurements) {
 		s := fmt.Sprintf("tibber.measurements does not match. Expected: [%s]. Found: [%s]", sliceToCommaSeparatedString(tibberMeasurements), sliceToCommaSeparatedString(cfg.Tibber.Measurements))
-		t.Errorf(s)
+		t.Fatalf(s)
 	}
 }
 
@@ -38,7 +38,7 @@ func sliceToCommaSeparatedString(s []string) string {
 	return msg
 }
 
-func validTibberMeasurements(t *testing.T, m []string) bool {
+func validTibberMeasurements(m []string) bool {
 	for _, s := range tibberMeasurements {
 		if !slices.Contains(m, s) {
 			return false

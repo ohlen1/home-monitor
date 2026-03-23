@@ -9,41 +9,31 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-var currenPowerGauge *prometheus.GaugeVec = nil
-var currentPhaseCurrent *prometheus.GaugeVec = nil
-var currentPhaseVoltage *prometheus.GaugeVec = nil
-var averagePower *prometheus.GaugeVec = nil
-var minPower *prometheus.GaugeVec = nil
-var maxPower *prometheus.GaugeVec = nil
-var accumulatedConsumption *prometheus.GaugeVec = nil
-var accumulatedCost *prometheus.GaugeVec = nil
+var currentPowerGauge *prometheus.GaugeVec
+var currentPhaseCurrent *prometheus.GaugeVec
+var currentPhaseVoltage *prometheus.GaugeVec
+var averagePower *prometheus.GaugeVec
+var minPower *prometheus.GaugeVec
+var maxPower *prometheus.GaugeVec
+var accumulatedConsumption *prometheus.GaugeVec
+var accumulatedCost *prometheus.GaugeVec
 
 var cfg config.Config
 
 func Init(config config.Config) {
 	cfg = config
 	if cfg.MetricsEnabled {
-		currenPowerGauge = newGaugeVector("hm_current_power_gauge", "Gauge for current power consumption", []string{"homeId"})
+		currentPowerGauge = newGaugeVector("hm_current_power_gauge", "Gauge for current power consumption", []string{"homeId"})
 		currentPhaseCurrent = newGaugeVector("hm_current_phase_current", "Gauge for current phase current", []string{"homeId", "phaseNo"})
 		currentPhaseVoltage = newGaugeVector("hm_current_phase_voltage", "Gauge for current phase voltage", []string{"homeId", "phaseNo"})
 		averagePower = newGaugeVector("hm_average_power_since_midnight", "Gauge for average power consumption, since midnight", []string{"homeId"})
 		minPower = newGaugeVector("hm_min_power_since_midnight", "Gauge for minimum power consumption, since midnight", []string{"homeId"})
 		maxPower = newGaugeVector("hm_maxpower_since_midnight", "Gauge for maximum power consumption, since midnight", []string{"homeId"})
-		accumulatedConsumption = newGaugeVector("hm_accumulated_consumption_since_midnight", "Gauge for accumulated consumption in SEK, since midnight", []string{"homeId"})
+		accumulatedConsumption = newGaugeVector("hm_accumulated_consumption_since_midnight", "Gauge for accumulated consumption in kWh, since midnight", []string{"homeId"})
 		accumulatedCost = newGaugeVector("hm_accumulated_cost_since_midnight", "Gauge for accumulated cost in SEK, since midnight", []string{"homeId"})
 		go Listen()
 		slog.Info("Metrics initialized")
 	}
-}
-
-func newGauge(name, help string) prometheus.Gauge {
-	o := prometheus.GaugeOpts{
-		Name: name,
-		Help: help,
-	}
-	gauge := prometheus.NewGauge(o)
-	prometheus.MustRegister(gauge)
-	return gauge
 }
 
 func newGaugeVector(name, help string, labels []string) *prometheus.GaugeVec {
@@ -57,62 +47,36 @@ func newGaugeVector(name, help string, labels []string) *prometheus.GaugeVec {
 	return gauge
 }
 
-func newCounterVector(name, help string, labels []string) *prometheus.CounterVec {
-	counterOpts := prometheus.CounterOpts{
-		Name: name,
-		Help: help,
-	}
-	counter := prometheus.NewCounterVec(counterOpts, labels)
-	prometheus.MustRegister(counter)
-	return counter
-}
-
 func ObsCurrentPowerConsumption(v float64) {
-	if currenPowerGauge != nil {
-		currenPowerGauge.WithLabelValues(cfg.Tibber.HomeId).Add(v)
-	}
+	setGauge(currentPowerGauge, []string{cfg.Tibber.HomeId}, v)
 }
 
 func ObsPhaseCurrent(phaseNo string, v float64) {
-	if currentPhaseCurrent != nil {
-		currentPhaseCurrent.WithLabelValues(cfg.Tibber.HomeId, phaseNo).Add(v)
-	}
+	setGauge(currentPhaseCurrent, []string{cfg.Tibber.HomeId, phaseNo}, v)
 }
 
 func ObsPhaseVoltage(phaseNo string, v float64) {
-	if currentPhaseVoltage != nil {
-		currentPhaseVoltage.WithLabelValues(cfg.Tibber.HomeId, phaseNo).Add(v)
-	}
+	setGauge(currentPhaseVoltage, []string{cfg.Tibber.HomeId, phaseNo}, v)
 }
 
 func ObsAveragePower(watts float64) {
-	if averagePower != nil {
-		averagePower.WithLabelValues(cfg.Tibber.HomeId).Add(watts)
-	}
+	setGauge(averagePower, []string{cfg.Tibber.HomeId}, watts)
 }
 
 func ObsMinPower(watts float64) {
-	if minPower != nil {
-		minPower.WithLabelValues(cfg.Tibber.HomeId).Add(watts)
-	}
+	setGauge(minPower, []string{cfg.Tibber.HomeId}, watts)
 }
 
 func ObsMaxPower(watts float64) {
-	if maxPower != nil {
-		maxPower.WithLabelValues(cfg.Tibber.HomeId).Add(watts)
-	}
+	setGauge(maxPower, []string{cfg.Tibber.HomeId}, watts)
 }
 
-func ObsAccumulatedConsumption(cost float64) {
-	if accumulatedCost != nil {
-		accumulatedCost.WithLabelValues(cfg.Tibber.HomeId).Add(cost)
-	}
+func ObsAccumulatedConsumption(kwh float64) {
+	setGauge(accumulatedConsumption, []string{cfg.Tibber.HomeId}, kwh)
 }
 
 func ObsAccumulatedCost(cost float64) {
-	if accumulatedCost != nil {
-		accumulatedCost.WithLabelValues(cfg.Tibber.HomeId).Add(cost)
-	}
+	setGauge(accumulatedCost, []string{cfg.Tibber.HomeId}, cost)
 }
 
 func AddHandler() {
@@ -123,5 +87,14 @@ func AddHandler() {
 func Listen() {
 	slog.Info("Metrics server enabled on port 7071")
 	AddHandler()
-	http.ListenAndServe(":7071", nil)
+	if err := http.ListenAndServe(":7071", nil); err != nil {
+		slog.Error("Metrics server crashed", "error", err)
+	}
+}
+
+func setGauge(g *prometheus.GaugeVec, labels []string, value float64) {
+	if g == nil {
+		return
+	}
+	g.WithLabelValues(labels...).Set(value)
 }
