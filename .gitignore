@@ -1,2 +1,6 @@
 bin
 config.yaml
+.vscode
+.idea
+.DS_Store
+*.log
