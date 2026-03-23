@@ -1,4 +1,7 @@
-FROM golang:alpine as builder
+FROM golang:alpine AS builder
+
+ENV GOOS=linux
+ENV GOARCH=arm64
 
 RUN apk add make
 
@@ -16,7 +19,6 @@ LABEL maintainer="Andreas Ohlén"
 
 FROM alpine:latest
 WORKDIR /root/
-COPY config.yaml /root/config.yaml
 COPY --from=builder /app/bin/home-monitor /root/home-monitor
 EXPOSE 7071
 CMD ["/root/home-monitor"]

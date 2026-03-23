@@ -44,6 +44,7 @@ func main() {
 	c, _, err := websocket.DefaultDialer.Dial(url, headers)
 	if err != nil {
 		slog.Error("Dial error", "error", err)
+		os.Exit(1)
 	}
 	defer c.Close()
 
@@ -67,7 +68,7 @@ func main() {
 			messageType, message, err := c.ReadMessage()
 			slog.Info("New message", "type", messageType)
 			if err != nil {
-				slog.Error("read:", err)
+				slog.Error("read", "error", err)
 				return
 			}
 			if strings.Contains(string(message), "connection_ack") {
@@ -75,7 +76,7 @@ func main() {
 				connectionStatus = CONNECTION_STATUS_CONNECTED
 				continue
 			}
-			slog.Debug(fmt.Sprintf("recv: %s", message))
+			slog.Debug("recv", "payload", string(message))
 			// TODO send message to a channel and call messageHandler in a goroutine
 			messagehandler.Handle(message)
 		}
@@ -90,7 +91,7 @@ func main() {
 			slog.Debug("Writing message", "message", m)
 			err := c.WriteMessage(websocket.TextMessage, []byte(m))
 			if err != nil {
-				slog.Debug("write:", err)
+				slog.Debug("write", "error", err)
 				return
 			}
 		case <-interrupt:
@@ -100,7 +101,7 @@ func main() {
 			// waiting (with timeout) for the server to close the connection.
 			err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			if err != nil {
-				slog.Error("write close:", "error", err)
+				slog.Error("write close", "error", err)
 				return
 			}
 			select {
@@ -126,17 +127,16 @@ func getWebSocketUrl() string {
 
 	client := &http.Client{}
 	initResponse, err := client.Do(req)
-	if err != nil || initResponse.StatusCode != 200 {
-		slog.Error("Error executing init request", "error", err, "statusCode", initResponse.StatusCode, "status", initResponse.Status)
+	if err != nil || initResponse.StatusCode != http.StatusOK {
+		slog.Error("Error executing init request", "error", err, "statusCode", initResponse.StatusCode)
 		os.Exit(1)
 	}
 	defer initResponse.Body.Close()
 
 	// parse body
 	r := new(model.InitResponseBody)
-	json.NewDecoder(initResponse.Body).Decode(r)
-	if initResponse.StatusCode != 200 {
-		slog.Info("Init request failed", "statusCode", initResponse.StatusCode)
+	if err := json.NewDecoder(initResponse.Body).Decode(r); err != nil {
+		slog.Error("Failed to parse init response", "error", err)
 		os.Exit(1)
 	}
 	slog.Info("Init request successful", "statusCode", initResponse.StatusCode, "wsUrl", r.Data.Viewer.WebsocketSubscriptionUrl)
@@ -164,29 +164,36 @@ func initLogger(level string) {
 }
 
 func createConnectionInitMessage() string {
-	msg := new(model.ConnectionInitMessage)
-	msg.Type = "connection_init"
-	msg.Payload.Token = "q-h07iu6ISI6KBc_wL5ZpmxKZwT-zuZkVqsGE49HZz4"
-	b, _ := json.Marshal(msg)
+	msg := &model.ConnectionInitMessage{Type: "connection_init"}
+	msg.Payload.Token = cfg.Tibber.ApiToken
+	b, err := json.Marshal(msg)
+	if err != nil {
+		slog.Error("Failed to marshal connection init message", "error", err)
+		os.Exit(1)
+	}
 	return string(b)
 }
 
 func createSubscribeMessage() string {
-	msg := new(model.SubscribeMessage)
-	msg.Id = "1"
-	msg.Type = "subscribe"
-	msg.Payload.Query = fmt.Sprintf("subscription {liveMeasurement(homeId: \"%s\"){%s}}", cfg.Tibber.HomeId, getMeasurementString())
-	b, _ := json.Marshal(msg)
+	payload := fmt.Sprintf("subscription {liveMeasurement(homeId: \"%s\"){%s}}", cfg.Tibber.HomeId, getMeasurementString())
+
+	msg := &model.SubscribeMessage{
+		Id:   "1",
+		Type: "subscribe",
+	}
+	msg.Payload.Query = payload
+
+	b, err := json.Marshal(msg)
+	if err != nil {
+		slog.Error("Failed to marshal subscribe message", "error", err)
+		os.Exit(1)
+	}
 	return string(b)
 }
 
 func getMeasurementString() string {
-	meas := ""
-	for i, s := range cfg.Tibber.Measurements {
-		meas += s
-		if i < len(meas)-1 {
-			meas += " "
-		}
+	if len(cfg.Tibber.Measurements) == 0 {
+		return ""
 	}
-	return meas
+	return strings.Join(cfg.Tibber.Measurements, " ")
 }

@@ -1,0 +1,18 @@
+serviceName: home-monitor
+logLevel: DEBUG
+parallelism: 5
+metricsEnabled: true
+
+tibber:
+  url: https://example.com/graphql
+  homeId: test-home-id
+  apiToken: test-token
+  measurements:
+    - timestamp
+    - power
+    - accumulatedConsumption
+    - accumulatedCost
+    - currency
+    - minPower
+    - averagePower
+    - maxPower
