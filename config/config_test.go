@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"slices"
 	"testing"
 )
@@ -22,8 +21,7 @@ func TestConfig(t *testing.T) {
 	}
 
 	if !validTibberMeasurements(cfg.Tibber.Measurements) {
-		s := fmt.Sprintf("tibber.measurements does not match. Expected: [%s]. Found: [%s]", sliceToCommaSeparatedString(tibberMeasurements), sliceToCommaSeparatedString(cfg.Tibber.Measurements))
-		t.Fatalf(s)
+		t.Fatalf("tibber.measurements does not match. Expected: [%s]. Found: [%s]", sliceToCommaSeparatedString(tibberMeasurements), sliceToCommaSeparatedString(cfg.Tibber.Measurements))
 	}
 }
 
