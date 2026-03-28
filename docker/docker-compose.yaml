@@ -35,6 +35,9 @@ services:
       - ../config.yaml:/root/config.yaml
     networks:
       - default
+    environment:
+      - TIBBER_API_TOKEN
+      - TIBBER_HOME_ID
 
 networks:
   default:

@@ -8,6 +8,31 @@ import (
 	"codingminds.com/homemmonitor/model"
 )
 
+// MetricsObserver abstracts the metrics package so it can be replaced in tests.
+type MetricsObserver interface {
+	ObsCurrentPowerConsumption(v float64)
+	ObsAveragePower(watts float64)
+	ObsAccumulatedConsumption(kwh float64)
+	ObsAccumulatedCost(cost float64)
+	ObsMinPower(watts float64)
+	ObsMaxPower(watts float64)
+	ObsPhaseCurrent(phaseNo string, v float64)
+	ObsPhaseVoltage(phaseNo string, v float64)
+}
+
+var obs MetricsObserver = realMetrics{}
+
+type realMetrics struct{}
+
+func (realMetrics) ObsCurrentPowerConsumption(v float64)      { metrics.ObsCurrentPowerConsumption(v) }
+func (realMetrics) ObsAveragePower(watts float64)             { metrics.ObsAveragePower(watts) }
+func (realMetrics) ObsAccumulatedConsumption(kwh float64)     { metrics.ObsAccumulatedConsumption(kwh) }
+func (realMetrics) ObsAccumulatedCost(cost float64)           { metrics.ObsAccumulatedCost(cost) }
+func (realMetrics) ObsMinPower(watts float64)                 { metrics.ObsMinPower(watts) }
+func (realMetrics) ObsMaxPower(watts float64)                 { metrics.ObsMaxPower(watts) }
+func (realMetrics) ObsPhaseCurrent(phaseNo string, v float64) { metrics.ObsPhaseCurrent(phaseNo, v) }
+func (realMetrics) ObsPhaseVoltage(phaseNo string, v float64) { metrics.ObsPhaseVoltage(phaseNo, v) }
+
 func Handle(data []byte) {
 	msg := new(model.LiveMeasurementResponseBody)
 	err := json.Unmarshal(data, msg)
@@ -24,22 +49,22 @@ func Handle(data []byte) {
 }
 
 func produceMetrics(msg model.LiveMeasurementResponseBody) {
-	metrics.ObsCurrentPowerConsumption(msg.Payload.Data.LiveMeasurement.Power)
-	metrics.ObsAveragePower(msg.Payload.Data.LiveMeasurement.AveragePower)
-	metrics.ObsAccumulatedConsumption(msg.Payload.Data.LiveMeasurement.AccumulatedConsumption)
-	metrics.ObsAccumulatedCost(msg.Payload.Data.LiveMeasurement.AccumulatedCost)
-	metrics.ObsMinPower(msg.Payload.Data.LiveMeasurement.MinPower)
-	metrics.ObsMaxPower(msg.Payload.Data.LiveMeasurement.MaxPower)
-	metrics.ObsPhaseCurrent("1", msg.Payload.Data.LiveMeasurement.CurrentL1)
-	metrics.ObsPhaseCurrent("2", msg.Payload.Data.LiveMeasurement.CurrentL2)
-	metrics.ObsPhaseCurrent("3", msg.Payload.Data.LiveMeasurement.CurrentL3)
-	metrics.ObsPhaseVoltage("1", msg.Payload.Data.LiveMeasurement.VoltagePhase1)
-	metrics.ObsPhaseVoltage("2", msg.Payload.Data.LiveMeasurement.VoltagePhase2)
-	metrics.ObsPhaseVoltage("3", msg.Payload.Data.LiveMeasurement.VoltagePhase3)
+	obs.ObsCurrentPowerConsumption(msg.Payload.Data.LiveMeasurement.Power)
+	obs.ObsAveragePower(msg.Payload.Data.LiveMeasurement.AveragePower)
+	obs.ObsAccumulatedConsumption(msg.Payload.Data.LiveMeasurement.AccumulatedConsumption)
+	obs.ObsAccumulatedCost(msg.Payload.Data.LiveMeasurement.AccumulatedCost)
+	obs.ObsMinPower(msg.Payload.Data.LiveMeasurement.MinPower)
+	obs.ObsMaxPower(msg.Payload.Data.LiveMeasurement.MaxPower)
+	obs.ObsPhaseCurrent("1", msg.Payload.Data.LiveMeasurement.CurrentL1)
+	obs.ObsPhaseCurrent("2", msg.Payload.Data.LiveMeasurement.CurrentL2)
+	obs.ObsPhaseCurrent("3", msg.Payload.Data.LiveMeasurement.CurrentL3)
+	obs.ObsPhaseVoltage("1", msg.Payload.Data.LiveMeasurement.VoltagePhase1)
+	obs.ObsPhaseVoltage("2", msg.Payload.Data.LiveMeasurement.VoltagePhase2)
+	obs.ObsPhaseVoltage("3", msg.Payload.Data.LiveMeasurement.VoltagePhase3)
 }
 
 func logMessage(msg model.LiveMeasurementResponseBody) {
-	slog.Info("Measurements received from Tibber",
+	slog.Debug("Measurements received from Tibber",
 		"timestamp", msg.Payload.Data.LiveMeasurement.Timestamp,
 		"power", msg.Payload.Data.LiveMeasurement.Power,
 		"averagePower", msg.Payload.Data.LiveMeasurement.AveragePower,

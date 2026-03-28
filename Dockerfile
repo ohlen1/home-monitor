@@ -1,7 +1,7 @@
-FROM golang:alpine AS builder
+FROM --platform=$BUILDPLATFORM golang:alpine AS builder
 
-ENV GOOS=linux
-ENV GOARCH=arm64
+ARG TARGETOS
+ARG TARGETARCH
 
 RUN apk add make
 
@@ -12,7 +12,7 @@ RUN go mod download
 COPY . .
 RUN go mod tidy
 
-RUN make build
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH make build
 LABEL maintainer="Andreas Ohlén"
 
 ##########

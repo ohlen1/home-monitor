@@ -28,6 +28,7 @@ var cfg *config.Config
 
 func main() {
 	cfg = config.LoadConfig("config.yaml")
+
 	initLogger(cfg.LogLevel)
 	metrics.Init(*cfg)
 	url := getWebSocketUrl()

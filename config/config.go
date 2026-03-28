@@ -33,6 +33,26 @@ func LoadConfig(path string) *Config {
 		os.Exit(1)
 	}
 
+	apiToken, _ := os.LookupEnv("TIBBER_API_TOKEN")
+	if apiToken == "" {
+		slog.Warn("TIBBER_API_TOKEN env variable not set")
+	} else {
+		slog.Info("Tibber API token provided via env")
+		cfg.Tibber.ApiToken = apiToken
+	}
+
+	homeId, _ := os.LookupEnv("TIBBER_HOME_ID")
+	if homeId == "" {
+		slog.Warn("TIBBER_HOME_ID env variable not set")
+	} else {
+		slog.Info("Tibber Home ID provided via env")
+		cfg.Tibber.HomeId = homeId
+	}
+
+	if len(cfg.Tibber.ApiToken) == 0 || len(cfg.Tibber.HomeId) == 0 {
+		panic("Tibber configuration incomplete")
+	}
+
 	slog.Info("Config initialized", "config", cfg)
 	return &cfg
 }
