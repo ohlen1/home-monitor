@@ -15,6 +15,7 @@ type mockMetrics struct {
 	minPowerProduction     float64
 	maxPowerProduction     float64
 	lastMeterProduction    float64
+	accumulatedProduction  float64
 	phaseCurrent           map[string]float64
 	phaseVoltage           map[string]float64
 }
@@ -24,6 +25,7 @@ func (m *mockMetrics) ObsCurrentPowerProduction(watts float64)   { m.currentPowe
 func (m *mockMetrics) ObsAveragePower(watts float64)             { m.averagePower = watts }
 func (m *mockMetrics) ObsAccumulatedConsumption(kwh float64)     { m.accumulatedConsumption = kwh }
 func (m *mockMetrics) ObsAccumulatedCost(cost float64)           { m.accumulatedCost = cost }
+func (m *mockMetrics) ObsAccumulatedProduction(kwh float64)      { m.accumulatedProduction = kwh }
 func (m *mockMetrics) ObsMinPower(watts float64)                 { m.minPower = watts }
 func (m *mockMetrics) ObsMaxPower(watts float64)                 { m.maxPower = watts }
 func (m *mockMetrics) ObsPhaseCurrent(phaseNo string, v float64) { m.phaseCurrent[phaseNo] = v }
