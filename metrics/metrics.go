@@ -21,6 +21,7 @@ var maxPowerProduction *prometheus.GaugeVec
 var lastMeterProduction *prometheus.GaugeVec
 var accumulatedConsumption *prometheus.GaugeVec
 var accumulatedCost *prometheus.GaugeVec
+var accumulatedProduction *prometheus.GaugeVec
 
 var cfg config.Config
 
@@ -39,6 +40,7 @@ func Init(config config.Config) {
 		lastMeterProduction = newGaugeVector("hm_last_meter_production_since_midnight", "Gauge for last meter production, since midnight", []string{"homeId"})
 		accumulatedConsumption = newGaugeVector("hm_accumulated_consumption_since_midnight", "Gauge for accumulated consumption in kWh, since midnight", []string{"homeId"})
 		accumulatedCost = newGaugeVector("hm_accumulated_cost_since_midnight", "Gauge for accumulated cost in SEK, since midnight", []string{"homeId"})
+		accumulatedProduction = newGaugeVector("hm_accumulated_production_since_midnight", "Gauge for accumulated production in kWh, since midnight", []string{"homeId"})
 		go Listen()
 		slog.Info("Metrics initialized")
 	}
@@ -101,6 +103,10 @@ func ObsMaxPowerProduction(watts float64) {
 
 func ObsLastMeterProduction(watts float64) {
 	setGauge(lastMeterProduction, []string{cfg.Tibber.HomeId}, watts)
+}
+
+func ObsAccumulatedProduction(kwh float64) {
+	setGauge(accumulatedProduction, []string{cfg.Tibber.HomeId}, kwh)
 }
 
 func AddHandler() {

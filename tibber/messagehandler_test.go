@@ -1,4 +1,4 @@
-package messagehandler
+package tibber
 
 import (
 	"testing"
@@ -12,6 +12,9 @@ type mockMetrics struct {
 	accumulatedCost        float64
 	minPower               float64
 	maxPower               float64
+	minPowerProduction     float64
+	maxPowerProduction     float64
+	lastMeterProduction    float64
 	phaseCurrent           map[string]float64
 	phaseVoltage           map[string]float64
 }
@@ -25,6 +28,9 @@ func (m *mockMetrics) ObsMinPower(watts float64)                 { m.minPower = 
 func (m *mockMetrics) ObsMaxPower(watts float64)                 { m.maxPower = watts }
 func (m *mockMetrics) ObsPhaseCurrent(phaseNo string, v float64) { m.phaseCurrent[phaseNo] = v }
 func (m *mockMetrics) ObsPhaseVoltage(phaseNo string, v float64) { m.phaseVoltage[phaseNo] = v }
+func (m *mockMetrics) ObsMinPowerProduction(watts float64)       { m.minPowerProduction = watts }
+func (m *mockMetrics) ObsMaxPowerProduction(watts float64)       { m.maxPowerProduction = watts }
+func (m *mockMetrics) ObsLastMeterProduction(watts float64)      { m.lastMeterProduction = watts }
 
 func TestHandle(t *testing.T) {
 	mock := &mockMetrics{
@@ -34,7 +40,7 @@ func TestHandle(t *testing.T) {
 	obs = mock
 	t.Cleanup(func() { obs = realMetrics{} })
 
-	Handle([]byte(`{"id":"1","type":"next","payload":{"data":{"liveMeasurement":{"timestamp":"2024-06-01T12:00:00Z","power":100.0,"averagePower":50.0,"accumulatedConsumption":10.0,"accumulatedCost":2.5,"minPower":20.0,"maxPower":150.0,"currentL1":1.0,"currentL2":2.0,"currentL3":3.0,"voltagePhase1":230.0,"voltagePhase2":231.0,"voltagePhase3":229.0}}}}`))
+	HandleLiveMeasurement([]byte(`{"id":"1","type":"next","payload":{"data":{"liveMeasurement":{"timestamp":"2024-06-01T12:00:00Z","power":100.0,"averagePower":50.0,"accumulatedConsumption":10.0,"accumulatedCost":2.5,"minPower":20.0,"maxPower":150.0,"currentL1":1.0,"currentL2":2.0,"currentL3":3.0,"voltagePhase1":230.0,"voltagePhase2":231.0,"voltagePhase3":229.0}}}}`))
 
 	assertFloat(t, "currentPower", 100.0, mock.currentPower)
 	assertFloat(t, "currentPowerProduction", 50.0, mock.currentPowerProduction)
