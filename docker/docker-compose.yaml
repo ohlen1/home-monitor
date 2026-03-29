@@ -3,10 +3,12 @@ services:
   prometheus:
     container_name: 'prometheus'
     image: prom/prometheus
+    user: $PUID
     ports:
       - '9090:9090'
     volumes:
       - ./conf/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml
+      - $DOCKERDIR/appdata/prometheus:/prometheus
     networks:
       - default
 

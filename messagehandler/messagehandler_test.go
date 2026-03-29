@@ -6,6 +6,7 @@ import (
 
 type mockMetrics struct {
 	currentPower           float64
+	currentPowerProduction float64
 	averagePower           float64
 	accumulatedConsumption float64
 	accumulatedCost        float64
@@ -16,6 +17,7 @@ type mockMetrics struct {
 }
 
 func (m *mockMetrics) ObsCurrentPowerConsumption(v float64)      { m.currentPower = v }
+func (m *mockMetrics) ObsCurrentPowerProduction(watts float64)   { m.currentPowerProduction = watts }
 func (m *mockMetrics) ObsAveragePower(watts float64)             { m.averagePower = watts }
 func (m *mockMetrics) ObsAccumulatedConsumption(kwh float64)     { m.accumulatedConsumption = kwh }
 func (m *mockMetrics) ObsAccumulatedCost(cost float64)           { m.accumulatedCost = cost }
@@ -35,6 +37,7 @@ func TestHandle(t *testing.T) {
 	Handle([]byte(`{"id":"1","type":"next","payload":{"data":{"liveMeasurement":{"timestamp":"2024-06-01T12:00:00Z","power":100.0,"averagePower":50.0,"accumulatedConsumption":10.0,"accumulatedCost":2.5,"minPower":20.0,"maxPower":150.0,"currentL1":1.0,"currentL2":2.0,"currentL3":3.0,"voltagePhase1":230.0,"voltagePhase2":231.0,"voltagePhase3":229.0}}}}`))
 
 	assertFloat(t, "currentPower", 100.0, mock.currentPower)
+	assertFloat(t, "currentPowerProduction", 50.0, mock.currentPowerProduction)
 	assertFloat(t, "averagePower", 50.0, mock.averagePower)
 	assertFloat(t, "accumulatedConsumption", 10.0, mock.accumulatedConsumption)
 	assertFloat(t, "accumulatedCost", 2.5, mock.accumulatedCost)

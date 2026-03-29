@@ -13,11 +13,15 @@ func TestInit(t *testing.T) {
 	Init(*config)
 
 	validateNotNilGauge(t, currentPowerGauge, "currentPowerGauge")
+	validateNotNilGauge(t, currentPowerProductionGauge, "currentPowerProductionGauge")
 	validateNotNilGauge(t, currentPhaseCurrent, "currentPhaseCurrent")
 	validateNotNilGauge(t, currentPhaseVoltage, "currentPhaseVoltage")
 	validateNotNilGauge(t, averagePower, "averagePower")
 	validateNotNilGauge(t, minPower, "minPower")
 	validateNotNilGauge(t, maxPower, "maxPower")
+	validateNotNilGauge(t, minPowerProduction, "minPowerProduction")
+	validateNotNilGauge(t, maxPowerProduction, "maxPowerProduction")
+	validateNotNilGauge(t, lastMeterProduction, "lastMeterProduction")
 	validateNotNilGauge(t, accumulatedConsumption, "accumulatedConsumption")
 	validateNotNilGauge(t, accumulatedCost, "accumulatedCost")
 }
@@ -27,6 +31,13 @@ func TestObsCurrentPowerConsumption(t *testing.T) {
 	ObsCurrentPowerConsumption(expected)
 
 	testGaugeValue(t, currentPowerGauge, []string{cfg.Tibber.HomeId}, expected)
+}
+
+func TestObsCurrentPowerProduction(t *testing.T) {
+	const expected = 50.0
+	ObsCurrentPowerProduction(expected)
+
+	testGaugeValue(t, currentPowerProductionGauge, []string{cfg.Tibber.HomeId}, expected)
 }
 
 func TestObsPhaseCurrent(t *testing.T) {
@@ -76,6 +87,27 @@ func TestObsAccumulatedCost(t *testing.T) {
 	ObsAccumulatedCost(expected)
 
 	testGaugeValue(t, accumulatedCost, []string{cfg.Tibber.HomeId}, expected)
+}
+
+func TestObsMinPowerProduction(t *testing.T) {
+	const expected = 15.0
+	ObsMinPowerProduction(expected)
+
+	testGaugeValue(t, minPowerProduction, []string{cfg.Tibber.HomeId}, expected)
+}
+
+func TestObsMaxPowerProduction(t *testing.T) {
+	const expected = 30.0
+	ObsMaxPowerProduction(expected)
+
+	testGaugeValue(t, maxPowerProduction, []string{cfg.Tibber.HomeId}, expected)
+}
+
+func TestObsLastMeterProduction(t *testing.T) {
+	const expected = 40.0
+	ObsLastMeterProduction(expected)
+
+	testGaugeValue(t, lastMeterProduction, []string{cfg.Tibber.HomeId}, expected)
 }
 
 func testGaugeValue(t *testing.T, gauge *prometheus.GaugeVec, labels []string, expected float64) {

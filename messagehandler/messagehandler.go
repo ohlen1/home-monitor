@@ -11,6 +11,7 @@ import (
 // MetricsObserver abstracts the metrics package so it can be replaced in tests.
 type MetricsObserver interface {
 	ObsCurrentPowerConsumption(v float64)
+	ObsCurrentPowerProduction(watts float64)
 	ObsAveragePower(watts float64)
 	ObsAccumulatedConsumption(kwh float64)
 	ObsAccumulatedCost(cost float64)
@@ -18,6 +19,9 @@ type MetricsObserver interface {
 	ObsMaxPower(watts float64)
 	ObsPhaseCurrent(phaseNo string, v float64)
 	ObsPhaseVoltage(phaseNo string, v float64)
+	ObsMinPowerProduction(watts float64)
+	ObsMaxPowerProduction(watts float64)
+	ObsLastMeterProduction(watts float64)
 }
 
 var obs MetricsObserver = realMetrics{}
@@ -32,6 +36,10 @@ func (realMetrics) ObsMinPower(watts float64)                 { metrics.ObsMinPo
 func (realMetrics) ObsMaxPower(watts float64)                 { metrics.ObsMaxPower(watts) }
 func (realMetrics) ObsPhaseCurrent(phaseNo string, v float64) { metrics.ObsPhaseCurrent(phaseNo, v) }
 func (realMetrics) ObsPhaseVoltage(phaseNo string, v float64) { metrics.ObsPhaseVoltage(phaseNo, v) }
+func (realMetrics) ObsCurrentPowerProduction(watts float64)   { metrics.ObsCurrentPowerProduction(watts) }
+func (realMetrics) ObsMinPowerProduction(watts float64)       { metrics.ObsMinPowerProduction(watts) }
+func (realMetrics) ObsMaxPowerProduction(watts float64)       { metrics.ObsMaxPowerProduction(watts) }
+func (realMetrics) ObsLastMeterProduction(watts float64)      { metrics.ObsLastMeterProduction(watts) }
 
 func Handle(data []byte) {
 	msg := new(model.LiveMeasurementResponseBody)
@@ -50,6 +58,7 @@ func Handle(data []byte) {
 
 func produceMetrics(msg model.LiveMeasurementResponseBody) {
 	obs.ObsCurrentPowerConsumption(msg.Payload.Data.LiveMeasurement.Power)
+	obs.ObsCurrentPowerProduction(msg.Payload.Data.LiveMeasurement.PowerProduction)
 	obs.ObsAveragePower(msg.Payload.Data.LiveMeasurement.AveragePower)
 	obs.ObsAccumulatedConsumption(msg.Payload.Data.LiveMeasurement.AccumulatedConsumption)
 	obs.ObsAccumulatedCost(msg.Payload.Data.LiveMeasurement.AccumulatedCost)
@@ -61,17 +70,24 @@ func produceMetrics(msg model.LiveMeasurementResponseBody) {
 	obs.ObsPhaseVoltage("1", msg.Payload.Data.LiveMeasurement.VoltagePhase1)
 	obs.ObsPhaseVoltage("2", msg.Payload.Data.LiveMeasurement.VoltagePhase2)
 	obs.ObsPhaseVoltage("3", msg.Payload.Data.LiveMeasurement.VoltagePhase3)
+	obs.ObsMinPowerProduction(msg.Payload.Data.LiveMeasurement.MinPowerProduction)
+	obs.ObsMaxPowerProduction(msg.Payload.Data.LiveMeasurement.MaxPowerProduction)
+	obs.ObsLastMeterProduction(msg.Payload.Data.LiveMeasurement.LastMeterProduction)
 }
 
 func logMessage(msg model.LiveMeasurementResponseBody) {
 	slog.Debug("Measurements received from Tibber",
 		"timestamp", msg.Payload.Data.LiveMeasurement.Timestamp,
 		"power", msg.Payload.Data.LiveMeasurement.Power,
+		"powerProduction", msg.Payload.Data.LiveMeasurement.PowerProduction,
 		"averagePower", msg.Payload.Data.LiveMeasurement.AveragePower,
 		"accumulatedConsumption", msg.Payload.Data.LiveMeasurement.AccumulatedConsumption,
 		"accumulatedCost", msg.Payload.Data.LiveMeasurement.AccumulatedCost,
 		"minPower", msg.Payload.Data.LiveMeasurement.MinPower,
 		"maxPower", msg.Payload.Data.LiveMeasurement.MaxPower,
+		"minPowerProduction", msg.Payload.Data.LiveMeasurement.MinPowerProduction,
+		"maxPowerProduction", msg.Payload.Data.LiveMeasurement.MaxPowerProduction,
+		"lastMeterProduction", msg.Payload.Data.LiveMeasurement.LastMeterProduction,
 		"currentL1", msg.Payload.Data.LiveMeasurement.CurrentL1,
 		"currentL2", msg.Payload.Data.LiveMeasurement.CurrentL2,
 		"currentL3", msg.Payload.Data.LiveMeasurement.CurrentL3,

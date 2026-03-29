@@ -10,9 +10,13 @@ type LiveMeasurementResponseBody struct {
 			LiveMeasurement struct {
 				Timestamp              time.Time `json:"timestamp"`
 				Power                  float64   `json:"power"`
+				PowerProduction        float64   `json:"powerProduction"`
 				AveragePower           float64   `json:"averagePower"`
 				MinPower               float64   `json:"minPower"`
 				MaxPower               float64   `json:"maxPower"`
+				MinPowerProduction     float64   `json:"minPowerProduction"`
+				MaxPowerProduction     float64   `json:"maxPowerProduction"`
+				LastMeterProduction    float64   `json:"lastMeterProduction"`
 				AccumulatedConsumption float64   `json:"accumulatedConsumption"`
 				AccumulatedCost        float64   `json:"accumulatedCost"`
 				CurrentL1              float64   `json:"currentL1"`
