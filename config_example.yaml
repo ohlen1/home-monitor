@@ -4,12 +4,14 @@ parallelism: 5
 metricsEnabled: true
 
 tibber:
+  enabled: true
   url: https://api.tibber.com/v1-beta/gql
   homeId: <home identifier - retrieve from https://developer.tibber.com>
   apiToken: <API token - retrieve from https://developer.tibber.com>
   measurements: 
     - timestamp
     - power
+    - powerProduction
     - averagePower
     - accumulatedConsumption
     - accumulatedCost
@@ -21,3 +23,6 @@ tibber:
     - voltagePhase3
     - minPower
     - maxPower
+    - minPowerProduction
+    - maxPowerProduction
+    - lastMeterProduction

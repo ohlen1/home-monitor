@@ -1,4 +1,4 @@
-package messagehandler
+package tibber
 
 import (
 	"encoding/json"
@@ -15,6 +15,7 @@ type MetricsObserver interface {
 	ObsAveragePower(watts float64)
 	ObsAccumulatedConsumption(kwh float64)
 	ObsAccumulatedCost(cost float64)
+	ObsAccumulatedProduction(kwh float64)
 	ObsMinPower(watts float64)
 	ObsMaxPower(watts float64)
 	ObsPhaseCurrent(phaseNo string, v float64)
@@ -32,6 +33,7 @@ func (realMetrics) ObsCurrentPowerConsumption(v float64)      { metrics.ObsCurre
 func (realMetrics) ObsAveragePower(watts float64)             { metrics.ObsAveragePower(watts) }
 func (realMetrics) ObsAccumulatedConsumption(kwh float64)     { metrics.ObsAccumulatedConsumption(kwh) }
 func (realMetrics) ObsAccumulatedCost(cost float64)           { metrics.ObsAccumulatedCost(cost) }
+func (realMetrics) ObsAccumulatedProduction(kwh float64)      { metrics.ObsAccumulatedProduction(kwh) }
 func (realMetrics) ObsMinPower(watts float64)                 { metrics.ObsMinPower(watts) }
 func (realMetrics) ObsMaxPower(watts float64)                 { metrics.ObsMaxPower(watts) }
 func (realMetrics) ObsPhaseCurrent(phaseNo string, v float64) { metrics.ObsPhaseCurrent(phaseNo, v) }
@@ -41,7 +43,7 @@ func (realMetrics) ObsMinPowerProduction(watts float64)       { metrics.ObsMinPo
 func (realMetrics) ObsMaxPowerProduction(watts float64)       { metrics.ObsMaxPowerProduction(watts) }
 func (realMetrics) ObsLastMeterProduction(watts float64)      { metrics.ObsLastMeterProduction(watts) }
 
-func Handle(data []byte) {
+func HandleLiveMeasurement(data []byte) {
 	msg := new(model.LiveMeasurementResponseBody)
 	err := json.Unmarshal(data, msg)
 	if err != nil {
@@ -62,6 +64,7 @@ func produceMetrics(msg model.LiveMeasurementResponseBody) {
 	obs.ObsAveragePower(msg.Payload.Data.LiveMeasurement.AveragePower)
 	obs.ObsAccumulatedConsumption(msg.Payload.Data.LiveMeasurement.AccumulatedConsumption)
 	obs.ObsAccumulatedCost(msg.Payload.Data.LiveMeasurement.AccumulatedCost)
+	obs.ObsAccumulatedProduction(msg.Payload.Data.LiveMeasurement.AccumulatedProduction)
 	obs.ObsMinPower(msg.Payload.Data.LiveMeasurement.MinPower)
 	obs.ObsMaxPower(msg.Payload.Data.LiveMeasurement.MaxPower)
 	obs.ObsPhaseCurrent("1", msg.Payload.Data.LiveMeasurement.CurrentL1)
@@ -83,6 +86,7 @@ func logMessage(msg model.LiveMeasurementResponseBody) {
 		"averagePower", msg.Payload.Data.LiveMeasurement.AveragePower,
 		"accumulatedConsumption", msg.Payload.Data.LiveMeasurement.AccumulatedConsumption,
 		"accumulatedCost", msg.Payload.Data.LiveMeasurement.AccumulatedCost,
+		"accumulatedProduction", msg.Payload.Data.LiveMeasurement.AccumulatedProduction,
 		"minPower", msg.Payload.Data.LiveMeasurement.MinPower,
 		"maxPower", msg.Payload.Data.LiveMeasurement.MaxPower,
 		"minPowerProduction", msg.Payload.Data.LiveMeasurement.MinPowerProduction,

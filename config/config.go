@@ -13,6 +13,7 @@ type Config struct {
 	MetricsEnabled bool   `yaml:"metricsEnabled"`
 	Parallelism    int    `yaml:"parallelism"`
 	Tibber         struct {
+		Enabled      bool     `yaml:"enabled"`
 		Url          string   `yaml:"url"`
 		HomeId       string   `yaml:"homeId"`
 		ApiToken     string   `yaml:"apiToken"`

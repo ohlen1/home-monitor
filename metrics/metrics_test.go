@@ -24,6 +24,7 @@ func TestInit(t *testing.T) {
 	validateNotNilGauge(t, lastMeterProduction, "lastMeterProduction")
 	validateNotNilGauge(t, accumulatedConsumption, "accumulatedConsumption")
 	validateNotNilGauge(t, accumulatedCost, "accumulatedCost")
+	validateNotNilGauge(t, accumulatedProduction, "accumulatedProduction")
 }
 
 func TestObsCurrentPowerConsumption(t *testing.T) {
@@ -87,6 +88,13 @@ func TestObsAccumulatedCost(t *testing.T) {
 	ObsAccumulatedCost(expected)
 
 	testGaugeValue(t, accumulatedCost, []string{cfg.Tibber.HomeId}, expected)
+}
+
+func TestObsAccumulatedProduction(t *testing.T) {
+	const expected = 10.0
+	ObsAccumulatedProduction(expected)
+
+	testGaugeValue(t, accumulatedProduction, []string{cfg.Tibber.HomeId}, expected)
 }
 
 func TestObsMinPowerProduction(t *testing.T) {
