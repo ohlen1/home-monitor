@@ -9,8 +9,7 @@ docker-build-push:
 	docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t andreasohlen/$(APP_NAME):latest --push .
 
 test:
-	go test ./config/... -v
-	go test ./metrics/... -v
+	go test ./... -v
 
 run: build
 	./bin/$(APP_NAME)

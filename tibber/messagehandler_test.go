@@ -42,15 +42,19 @@ func TestHandle(t *testing.T) {
 	obs = mock
 	t.Cleanup(func() { obs = realMetrics{} })
 
-	HandleLiveMeasurement([]byte(`{"id":"1","type":"next","payload":{"data":{"liveMeasurement":{"timestamp":"2024-06-01T12:00:00Z","power":100.0,"averagePower":50.0,"accumulatedConsumption":10.0,"accumulatedCost":2.5,"minPower":20.0,"maxPower":150.0,"currentL1":1.0,"currentL2":2.0,"currentL3":3.0,"voltagePhase1":230.0,"voltagePhase2":231.0,"voltagePhase3":229.0}}}}`))
+	HandleLiveMeasurement([]byte(`{"id":"1","type":"next","payload":{"data":{"liveMeasurement":{"timestamp":"2024-06-01T12:00:00Z","power":100.0,"averagePower":50.0,"powerProduction":25.0,"accumulatedConsumption":10.0,"accumulatedCost":2.5,"accumulatedProduction":5.0,"minPower":20.0,"maxPower":150.0,"minPowerProduction":5.0,"maxPowerProduction":30.0,"lastMeterProduction":15.0,"currentL1":1.0,"currentL2":2.0,"currentL3":3.0,"voltagePhase1":230.0,"voltagePhase2":231.0,"voltagePhase3":229.0}}}}`))
 
 	assertFloat(t, "currentPower", 100.0, mock.currentPower)
-	assertFloat(t, "currentPowerProduction", 50.0, mock.currentPowerProduction)
+	assertFloat(t, "currentPowerProduction", 25.0, mock.currentPowerProduction)
 	assertFloat(t, "averagePower", 50.0, mock.averagePower)
 	assertFloat(t, "accumulatedConsumption", 10.0, mock.accumulatedConsumption)
 	assertFloat(t, "accumulatedCost", 2.5, mock.accumulatedCost)
+	assertFloat(t, "accumulatedProduction", 5.0, mock.accumulatedProduction)
 	assertFloat(t, "minPower", 20.0, mock.minPower)
 	assertFloat(t, "maxPower", 150.0, mock.maxPower)
+	assertFloat(t, "minPowerProduction", 5.0, mock.minPowerProduction)
+	assertFloat(t, "maxPowerProduction", 30.0, mock.maxPowerProduction)
+	assertFloat(t, "lastMeterProduction", 15.0, mock.lastMeterProduction)
 	assertFloat(t, "currentL1", 1.0, mock.phaseCurrent["1"])
 	assertFloat(t, "currentL2", 2.0, mock.phaseCurrent["2"])
 	assertFloat(t, "currentL3", 3.0, mock.phaseCurrent["3"])
