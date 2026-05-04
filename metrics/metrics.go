@@ -20,8 +20,9 @@ var minPowerProduction *prometheus.GaugeVec
 var maxPowerProduction *prometheus.GaugeVec
 var lastMeterProduction *prometheus.GaugeVec
 var accumulatedConsumption *prometheus.GaugeVec
-var accumulatedCost *prometheus.GaugeVec
 var accumulatedProduction *prometheus.GaugeVec
+var accumulatedCost *prometheus.GaugeVec
+var accumulatedReward *prometheus.GaugeVec
 
 var cfg config.Config
 
@@ -41,6 +42,7 @@ func Init(config config.Config) {
 		accumulatedConsumption = newGaugeVector("hm_accumulated_consumption_since_midnight", "Gauge for accumulated consumption in kWh, since midnight", []string{"homeId"})
 		accumulatedCost = newGaugeVector("hm_accumulated_cost_since_midnight", "Gauge for accumulated cost in SEK, since midnight", []string{"homeId"})
 		accumulatedProduction = newGaugeVector("hm_accumulated_production_since_midnight", "Gauge for accumulated production in kWh, since midnight", []string{"homeId"})
+		accumulatedReward = newGaugeVector("hm_accumulated_reward_since_midnight", "Gauge for accumulated reward in SEK, since midnight", []string{"homeId"})
 		go Listen()
 		slog.Info("Metrics initialized")
 	}
@@ -93,6 +95,10 @@ func ObsAccumulatedCost(cost float64) {
 	setGauge(accumulatedCost, []string{cfg.Tibber.HomeId}, cost)
 }
 
+func ObsAccumulatedReward(reward float64) {
+	setGauge(accumulatedReward, []string{cfg.Tibber.HomeId}, reward)
+}
+
 func ObsMinPowerProduction(watts float64) {
 	setGauge(minPowerProduction, []string{cfg.Tibber.HomeId}, watts)
 }
@@ -123,6 +129,7 @@ func Listen() {
 }
 
 func setGauge(g *prometheus.GaugeVec, labels []string, value float64) {
+	slog.Debug("Setting gauge", "gauge", g, "value", value)
 	if g == nil {
 		return
 	}

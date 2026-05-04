@@ -18,8 +18,9 @@ type LiveMeasurementResponseBody struct {
 				MaxPowerProduction     float64   `json:"maxPowerProduction"`
 				LastMeterProduction    float64   `json:"lastMeterProduction"`
 				AccumulatedConsumption float64   `json:"accumulatedConsumption"`
-				AccumulatedCost        float64   `json:"accumulatedCost"`
 				AccumulatedProduction  float64   `json:"accumulatedProduction"`
+				AccumulatedCost        float64   `json:"accumulatedCost"`
+				AccumulatedReward      float64   `json:"accumulatedReward"`
 				CurrentL1              float64   `json:"currentL1"`
 				CurrentL2              float64   `json:"currentL2"`
 				CurrentL3              float64   `json:"currentL3"`

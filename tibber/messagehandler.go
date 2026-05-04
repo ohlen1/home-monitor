@@ -14,8 +14,9 @@ type MetricsObserver interface {
 	ObsCurrentPowerProduction(watts float64)
 	ObsAveragePower(watts float64)
 	ObsAccumulatedConsumption(kwh float64)
-	ObsAccumulatedCost(cost float64)
 	ObsAccumulatedProduction(kwh float64)
+	ObsAccumulatedCost(cost float64)
+	ObsAccumulatedReward(reward float64)
 	ObsMinPower(watts float64)
 	ObsMaxPower(watts float64)
 	ObsPhaseCurrent(phaseNo string, v float64)
@@ -32,8 +33,9 @@ type realMetrics struct{}
 func (realMetrics) ObsCurrentPowerConsumption(v float64)      { metrics.ObsCurrentPowerConsumption(v) }
 func (realMetrics) ObsAveragePower(watts float64)             { metrics.ObsAveragePower(watts) }
 func (realMetrics) ObsAccumulatedConsumption(kwh float64)     { metrics.ObsAccumulatedConsumption(kwh) }
-func (realMetrics) ObsAccumulatedCost(cost float64)           { metrics.ObsAccumulatedCost(cost) }
 func (realMetrics) ObsAccumulatedProduction(kwh float64)      { metrics.ObsAccumulatedProduction(kwh) }
+func (realMetrics) ObsAccumulatedCost(cost float64)           { metrics.ObsAccumulatedCost(cost) }
+func (realMetrics) ObsAccumulatedReward(reward float64)       { metrics.ObsAccumulatedReward(reward) }
 func (realMetrics) ObsMinPower(watts float64)                 { metrics.ObsMinPower(watts) }
 func (realMetrics) ObsMaxPower(watts float64)                 { metrics.ObsMaxPower(watts) }
 func (realMetrics) ObsPhaseCurrent(phaseNo string, v float64) { metrics.ObsPhaseCurrent(phaseNo, v) }
@@ -63,8 +65,9 @@ func produceMetrics(msg model.LiveMeasurementResponseBody) {
 	obs.ObsCurrentPowerProduction(msg.Payload.Data.LiveMeasurement.PowerProduction)
 	obs.ObsAveragePower(msg.Payload.Data.LiveMeasurement.AveragePower)
 	obs.ObsAccumulatedConsumption(msg.Payload.Data.LiveMeasurement.AccumulatedConsumption)
-	obs.ObsAccumulatedCost(msg.Payload.Data.LiveMeasurement.AccumulatedCost)
 	obs.ObsAccumulatedProduction(msg.Payload.Data.LiveMeasurement.AccumulatedProduction)
+	obs.ObsAccumulatedCost(msg.Payload.Data.LiveMeasurement.AccumulatedCost)
+	obs.ObsAccumulatedReward(msg.Payload.Data.LiveMeasurement.AccumulatedReward)
 	obs.ObsMinPower(msg.Payload.Data.LiveMeasurement.MinPower)
 	obs.ObsMaxPower(msg.Payload.Data.LiveMeasurement.MaxPower)
 	obs.ObsPhaseCurrent("1", msg.Payload.Data.LiveMeasurement.CurrentL1)
@@ -85,8 +88,9 @@ func logMessage(msg model.LiveMeasurementResponseBody) {
 		"powerProduction", msg.Payload.Data.LiveMeasurement.PowerProduction,
 		"averagePower", msg.Payload.Data.LiveMeasurement.AveragePower,
 		"accumulatedConsumption", msg.Payload.Data.LiveMeasurement.AccumulatedConsumption,
-		"accumulatedCost", msg.Payload.Data.LiveMeasurement.AccumulatedCost,
 		"accumulatedProduction", msg.Payload.Data.LiveMeasurement.AccumulatedProduction,
+		"accumulatedCost", msg.Payload.Data.LiveMeasurement.AccumulatedCost,
+		"accumulatedReward", msg.Payload.Data.LiveMeasurement.AccumulatedReward,
 		"minPower", msg.Payload.Data.LiveMeasurement.MinPower,
 		"maxPower", msg.Payload.Data.LiveMeasurement.MaxPower,
 		"minPowerProduction", msg.Payload.Data.LiveMeasurement.MinPowerProduction,
